@@ -37,7 +37,7 @@ namespace TestAutoUpdate
 
             try
             {
-                var updateUrl = "https://github.com/Pyanuk/TestUpdateWPF/releases";
+                var updateUrl = "https://github.com/Pyanuk/TestUpdateWPF/releases/latest/download";
 
                 using var mgr = new UpdateManager(updateUrl);
                 var updateInfo = await mgr.CheckForUpdate();
