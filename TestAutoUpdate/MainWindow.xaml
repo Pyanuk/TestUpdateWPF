@@ -37,6 +37,19 @@
                       Margin="0,0,0,20"
                       HorizontalAlignment="Center"/>
             
+            <TextBlock Text="✨ Новая функция добавлена!" 
+                      FontSize="16" 
+                      Margin="0,0,0,10"
+                      HorizontalAlignment="Center"
+                      Foreground="#FF6B35"
+                      FontWeight="Bold"/>
+            
+            <TextBlock Text="Теперь можно видеть историю обновлений" 
+                      FontSize="12" 
+                      Margin="0,0,0,30"
+                      HorizontalAlignment="Center"
+                      Foreground="Gray"/>
+            
             <Button x:Name="CheckUpdateButton" 
                    Content="Проверить обновления" 
                    Width="200" 
