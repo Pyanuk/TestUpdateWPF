@@ -28,8 +28,7 @@ namespace TestAutoUpdate
         {
             try
             {
-                // Замени на свой GitHub репозиторий
-                var updateUrl = "https://github.com/YOUR_USERNAME/YOUR_REPO/releases";
+                var updateUrl = "https://github.com/Pyanuk/TestUpdateWPF/releases";
 
                 using var mgr = new UpdateManager(updateUrl);
                 

@@ -1,25 +1,39 @@
-# Скрипт для создания Squirrel релиза
+# Build and create NuGet package for Squirrel
 
-# Параметры
 $projectPath = "TestAutoUpdate\TestAutoUpdate.csproj"
-$outputDir = ".\Releases"
-$appName = "TestAutoUpdate"
+$publishDir = ".\publish"
+$releasesDir = ".\Releases"
 
-# Очистка и сборка
-Write-Host "Сборка проекта..." -ForegroundColor Green
-dotnet publish $projectPath -c Release -r win-x64 --self-contained false -o ".\publish"
+# Clean
+if (Test-Path $publishDir) { Remove-Item $publishDir -Recurse -Force }
+if (Test-Path $releasesDir) { Remove-Item $releasesDir -Recurse -Force }
+New-Item -ItemType Directory -Path $releasesDir -Force | Out-Null
 
-# Создание Squirrel релиза
-Write-Host "Создание Squirrel пакета..." -ForegroundColor Green
+Write-Host "Building project..." -ForegroundColor Green
+dotnet publish $projectPath -c Release -r win-x64 --self-contained true -o $publishDir
 
-# Установка Squirrel CLI если не установлен
-if (-not (Get-Command "squirrel" -ErrorAction SilentlyContinue)) {
-    Write-Host "Установка Squirrel CLI..." -ForegroundColor Yellow
-    dotnet tool install -g Clowd.Squirrel.CommandLine
-}
+Write-Host "Creating NuGet package..." -ForegroundColor Green
 
-# Создание релиза
-squirrel pack --packId $appName --packVersion 1.0.0 --packDirectory ".\publish" --releaseDir $outputDir
+# Create nuspec file
+$nuspecContent = @"
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>TestAutoUpdate</id>
+    <version>1.0.0</version>
+    <authors>Pyanuk</authors>
+    <description>Test Auto Update Application</description>
+  </metadata>
+  <files>
+    <file src="publish\**" target="lib\net8.0-windows\" />
+  </files>
+</package>
+"@
 
-Write-Host "Готово! Релиз создан в папке $outputDir" -ForegroundColor Green
-Write-Host "Загрузи файлы из $outputDir в GitHub Releases" -ForegroundColor Cyan
+$nuspecContent | Out-File -FilePath "TestAutoUpdate.nuspec" -Encoding UTF8
+
+# Create NuGet package
+nuget pack TestAutoUpdate.nuspec -OutputDirectory $releasesDir
+
+Write-Host "Done! Package created in $releasesDir" -ForegroundColor Green
+Write-Host "Now run: squirrel releasify --package=$releasesDir\TestAutoUpdate.1.0.0.nupkg --releaseDir=$releasesDir" -ForegroundColor Cyan
