@@ -1,0 +1,53 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Срабатывает при пуше тега типа v1.0.1
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Publish application
+      run: dotnet publish TestAutoUpdate/TestAutoUpdate.csproj -c Release -r win-x64 --self-contained true -o ./publish
+      
+    - name: Download Squirrel Tools
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/clowd/Clowd.Squirrel/releases/download/2.11.1/SquirrelTools-2.11.1.zip" -OutFile "squirrel.zip"
+        Expand-Archive -Path "squirrel.zip" -DestinationPath "." -Force
+        
+    - name: Get version from tag
+      id: get_version
+      run: |
+        $version = "${{ github.ref_name }}".TrimStart('v')
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+      shell: pwsh
+      
+    - name: Create Squirrel Release
+      run: |
+        ./squirrel.exe pack --packId TestAutoUpdate --packVersion ${{ steps.get_version.outputs.VERSION }} --packDirectory ./publish --releaseDir ./Releases --allowUnaware
+      
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          Releases/RELEASES
+          Releases/*.nupkg
+          Releases/TestAutoUpdateSetup.exe
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
